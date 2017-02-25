@@ -20,17 +20,17 @@ class FahrradControllerTest extends TestCase
 
     public function testUpdate()
     {
-        $this->json('PUT', '/fahrrad/2', ['id' => '2', 'modus' => '1', 'fahrer_id' => '1'])
-            ->seeJsonEquals([Fahrrad::whereId('2')->first()]);
+        $this->json('PUT', 'fahrrad/2', ['modus_id' => '2', 'fahrer_id]' => '3'])
+            ->seeInDatabase('fahrrad', ['modus_id' => '2']);
+
+        $this->json('PUT', 'fahrrad/2', ['modus_id' => '1', 'fahrer_id]' => '3'])
+            ->seeInDatabase('fahrrad', ['modus_id' => '1']);
     }
 
     public function testZuordnungHerstellenSuccessful()
     {
         $this->json('GET', '/fahrrad/1/fahrer/2', ['fahrrad_id' => '1', 'fahrer_id' => '2'])
-            ->seeJsonEquals(["fahrrad" => Fahrrad::whereId('1')->get(),
-                "fahrer" => Fahrer::whereId('2')->get(),
-                "modi" => Modus::all()]);
-
+            ->seeInDatabase('fahrrad', ['fahrer_id' => '2', 'id' => 1]);
     }
 
     public function testZuordnungHerstellenFahradNichtGefunden()
@@ -54,7 +54,7 @@ class FahrradControllerTest extends TestCase
             ->seeJsonEquals(["msg" => "Fahrer schon zugeordnet", "err" => 1]);
 
     }
-
+//
     public function testZuordnungHerstellenFahrradBesetzt()
     {
         $this->json('GET', '/fahrrad/1/fahrer/1', ['fahrrad_id' => '1', 'fahrer_id' => '1']);
@@ -62,8 +62,8 @@ class FahrradControllerTest extends TestCase
             ->seeJsonEquals(["msg" => "Fahrrad ist besetzt", "err" => 2]);
 
     }
-
-
+//
+//
     public function testZuordnungLoeschenOhneMailSuccessful()
     {
         $this->json('GET', '/fahrrad/1/fahrer/2', ['fahrrad_id' => '1', 'fahrer_id' => '2']);
@@ -90,16 +90,14 @@ class FahrradControllerTest extends TestCase
     {
         $this->json('DELETE', '/fahrrad/3')
             ->seeJsonEquals([
-                "msg" => "Error"
+                "msg" => "error"
             ]);
     }
 
     public function testGetData()
     {
         $this->json('GET', '/fahrrad/1/fahrer/2', ['fahrrad_id' => '1', 'fahrer_id' => '2', 'modus' => '1']);
-        $this->json('GET', '/data')
-            ->seeJsonEquals([
-                "data" => ["fahrrad" => Fahrrad::with("modus")->with("fahrer")->get()]
-            ]);
+        $this->json('GET', '/data');
+        $this->assertResponseStatus(200);
     }
 }

@@ -19,9 +19,7 @@ class FahrerControllerTest extends TestCase
     public function testCreateFahrerSuccessful()
     {
         $this->json('POST', '/fahrer', ['name' => 'Sally'])
-            ->seeJsonEquals([
-                "msg" => "ok", "err" => 0, "fahrer" => Fahrer::whereName("Sally")->get(),
-            ]);
+            ->seeInDatabase('fahrer', ['name' => 'Sally']);
     }
 
     public function testCreateFahrerFailed()
@@ -33,35 +31,35 @@ class FahrerControllerTest extends TestCase
             ]);
     }
 
-    public function testShowFahrer()
-    {
-        $this->json('POST', '/fahrer', ['name' => 'Sally']);
-        $this->seeInDatabase('fahrer', [
-            'name' => 'Sally'
-        ]);
-
-    }
-
     public function testGetAllFahrer()
     {
         $this->call('POST', '/fahrer', ['name' => 'Sally']);
-        $result = ["Jonas Nussbaum", "Juliane Seiler", "Maik Braun", "Petra Austerlitz", "Sally"];
+        $names = Fahrer::all("name");
+        $result = [];
+
+        foreach ($names as $name) {
+            array_push($result, $name->name);
+        }
+
         $this->json('GET', '/allnames')
             ->seeJsonEquals([
-                "msg" => "ok", "names" => $result,
+                "msg" => "ok", "names" => $result
             ]);
     }
 
     public function testUpdateFahrer()
     {
-        $fahrer = $this->json('POST', '/fahrer', ['id' => '5', 'name' => 'Sally']);
-        $this->json('PUT', '/fahrer/5', ['id' => '5', 'email' => 'sally@gmail.com'])
-            ->seeJsonEquals([Fahrer::whereId('5')->get()]);
+        $this->json('POST', '/fahrer', ['id' => '5', 'name' => 'Sally']);
+        $this->json('PUT', '/fahrer/5', ['id' => '5', 'email' => 'sally@gmail.com']);
+//        $result = Fahrer::whereName('Sally')->first(['created_at']) . Fahrer::whereName('Sally')->first(['email']) .
+//            Fahrer::whereName('Sally')->first(['gewicht']) . Fahrer::whereName('Sally')->first(['groesse']) .
+//            Fahrer::whereName('Sally')->first(['modus_id']) . Fahrer::whereName('Sally')->first(['name']) . Fahrer::whereName('Sally')->first(['updated_at']);
+        $this->seeInDatabase('fahrer', ['email' => 'sally@gmail.com']);
     }
 
     public function testDeleteFahrer()
     {
-        $fahrer = $this->json('POST', '/fahrer', ['id' => '5', 'name' => 'Sally']);
+        $this->json('POST', '/fahrer', ['id' => '5', 'name' => 'Sally']);
         $this->json('DELETE', '/fahrer/5')
             ->seeJsonEquals([
                 "msg" => "ok", 'id' => []
